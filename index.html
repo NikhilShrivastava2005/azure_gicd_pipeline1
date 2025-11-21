@@ -3,104 +3,136 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Professional Animated Card</title>
+  <title>Jump Box Game</title>
   <style>
     body {
+      margin: 0;
+      background: #111827;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      background: #f4f6fa;
-      margin: 0;
-      font-family: "Poppins", sans-serif;
+      font-family: sans-serif;
+      overflow: hidden;
     }
 
-    .card {
-      width: 320px;
-      padding: 25px;
-      background: #ffffff;
-      border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      transform: translateY(50px);
-      opacity: 0;
-      animation: fadeInUp 1s forwards ease-out;
+    #game {
+      width: 600px;
+      height: 250px;
+      background: #1f2937;
+      border: 3px solid #374151;
+      border-radius: 15px;
+      position: relative;
+      overflow: hidden;
     }
 
-    @keyframes fadeInUp {
-      0% {
-        opacity: 0;
-        transform: translateY(50px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    #player {
+      width: 40px;
+      height: 40px;
+      background: #3b82f6;
+      border-radius: 8px;
+      position: absolute;
+      bottom: 10px;
+      left: 50px;
+      transition: transform 0.1s;
     }
 
-    .profile-img {
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 4px solid #4c8bf5;
-      transition: transform 0.4s ease;
+    @keyframes jump {
+      0% { bottom: 10px; }
+      50% { bottom: 120px; }
+      100% { bottom: 10px; }
     }
 
-    .profile-img:hover {
-      transform: scale(1.08);
+    #obstacle {
+      width: 30px;
+      height: 40px;
+      background: #ef4444;
+      position: absolute;
+      bottom: 10px;
+      right: -40px;
+      animation: move 2s linear infinite;
+      border-radius: 6px;
     }
 
-    h2 {
-      margin: 15px 0 5px;
-      font-size: 1.6rem;
+    @keyframes move {
+      0% { right: -40px; }
+      100% { right: 640px; }
     }
 
-    p {
-      color: #555;
-      margin-bottom: 20px;
+    #score {
+      color: #fff;
+      font-size: 20px;
+      position: absolute;
+      top: 10px;
+      left: 20px;
     }
 
-    .btn {
-      display: inline-block;
-      padding: 12px 24px;
-      background: #4c8bf5;
-      color: white;
-      border-radius: 30px;
-      text-decoration: none;
-      font-size: 0.95rem;
-      transition: 0.3s;
-    }
-
-    .btn:hover {
-      background: #2d6de3;
-      transform: translateY(-3px);
-      box-shadow: 0 8px 20px rgba(76, 139, 245, 0.3);
+    #gameover {
+      color: #f87171;
+      font-size: 26px;
+      position: absolute;
+      top: 90px;
+      left: 180px;
+      display: none;
     }
   </style>
 </head>
 <body>
 
-  <div class="card" id="card">
-    <img src="https://i.imgur.com/6VBx3io.png" alt="Profile" class="profile-img" />
-    <h2 id="nameDisplay">John Doe</h2>
-    <p id="roleDisplay">Frontend Developer</p>
-    <a href="#" class="btn">View Profile</a>
+  <div id="game">
+    <div id="player"></div>
+    <div id="obstacle"></div>
+    <div id="score">Score: 0</div>
+    <div id="gameover">GAME OVER</div>
   </div>
 
   <script>
-    // Simple JS display animation trigger (runs when card enters viewport)
-    const card = document.getElementById("card");
+    const player = document.getElementById("player");
+    const obstacle = document.getElementById("obstacle");
+    const scoreDisplay = document.getElementById("score");
+    const gameoverText = document.getElementById("gameover");
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          card.style.animationPlayState = "running";
-        }
-      });
-    });
+    let score = 0;
+    let alive = true;
+    let jumping = false;
 
-    observer.observe(card);
+    function jump() {
+      if (jumping) return;
+      jumping = true;
+      player.style.animation = "jump 0.6s ease-out";
+      setTimeout(() => {
+        player.style.animation = "none";
+        jumping = false;
+      }, 600);
+    }
+
+    document.addEventListener("keydown", jump);
+    document.addEventListener("click", jump);
+
+    function gameLoop() {
+      if (!alive) return;
+
+      const playerRect = player.getBoundingClientRect();
+      const obstacleRect = obstacle.getBoundingClientRect();
+
+      if (
+        playerRect.right > obstacleRect.left &&
+        playerRect.left < obstacleRect.right &&
+        playerRect.bottom > obstacleRect.top
+      ) {
+        alive = false;
+        obstacle.style.animation = "none";
+        gameoverText.style.display = "block";
+        return;
+      }
+
+      score++;
+      scoreDisplay.innerText = "Score: " + score;
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    requestAnimationFrame(gameLoop);
   </script>
 
 </body>
